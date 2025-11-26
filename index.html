@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Operação Dezembro - Tracker Pro</title>
+    <title>Operação Dezembro - Guia em Português</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -19,7 +19,6 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .modal-overlay { background-color: rgba(0, 0, 0, 0.9); }
         
-        /* Inputs compactos para mobile */
         .input-compact { 
             background: #f8fafc; border: 1px solid #e2e8f0; 
             border-radius: 6px; padding: 4px 8px; font-size: 0.875rem; 
@@ -30,7 +29,6 @@
         .card-done { border-color: #10b981; background-color: #ecfdf5; }
         .card-done .input-compact { background: white; border-color: #bef264; }
         
-        /* Botões de Ação no Card */
         .action-btn {
             display: flex; align-items: center; justify-content: center;
             padding: 8px; border-radius: 8px; font-weight: 600; font-size: 0.85rem;
@@ -44,6 +42,16 @@
         
         .btn-check { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
         .btn-check.checked { background: #10b981; color: white; border-color: #059669; }
+
+        .badge-machine { background-color: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; }
+        .badge-free { background-color: #fce7f3; color: #be185d; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; }
+        
+        /* Spinner de Carregamento */
+        .loader {
+            border: 3px solid #f3f3f3; border-top: 3px solid #10b981;
+            border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen font-sans text-slate-800 pb-24 select-none">
@@ -71,85 +79,255 @@
                         <i data-lucide="rotate-ccw"></i> Resetar
                     </button>
                 </div>
-
                 <button id="btn-close-modal" class="text-slate-400 hover:text-white text-sm w-full py-2">Minimizar / Fechar</button>
             </div>
         </div>
     </div>
 
+    <!-- Modal de Guia de Exercício (API Integrada para Imagem) -->
+    <div id="guide-modal" class="fixed inset-0 modal-overlay z-[60] hidden flex flex-col items-center justify-center p-4 fade-in">
+        <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl relative overflow-hidden border border-slate-200 flex flex-col max-h-[90vh]">
+            
+            <!-- Header Fixo -->
+            <div class="p-4 border-b border-slate-100 flex justify-between items-start bg-white z-10">
+                <div>
+                    <span id="guide-type-badge" class="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded mb-1 inline-block"></span>
+                    <h3 id="guide-exercise-title" class="text-xl font-bold text-slate-800 leading-tight"></h3>
+                </div>
+                <button onclick="closeGuide()" class="p-2 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors">
+                    <i data-lucide="x" class="text-slate-500" width="20"></i>
+                </button>
+            </div>
+            
+            <!-- Conteúdo com Scroll -->
+            <div class="overflow-y-auto p-4 flex-1">
+                <!-- Área da Imagem/GIF da API -->
+                <div id="api-image-container" class="w-full h-48 bg-slate-100 rounded-lg mb-4 flex items-center justify-center overflow-hidden border border-slate-200 relative">
+                    <img id="guide-gif" src="" alt="Execução" class="w-full h-full object-contain hidden" />
+                    <div id="guide-loader" class="loader hidden"></div>
+                    <span id="guide-no-image" class="text-xs text-slate-400 hidden">Imagem não disponível</span>
+                </div>
+
+                <div class="bg-blue-50 p-4 rounded-xl mb-4 border border-blue-100">
+                    <h4 class="font-bold text-blue-800 text-sm mb-2 flex items-center gap-2">
+                        <i data-lucide="info" width="16"></i> Instruções em Português:
+                    </h4>
+                    <div id="guide-text" class="text-sm text-blue-900 leading-relaxed space-y-2"></div>
+                </div>
+
+                <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                    <h4 class="font-bold text-slate-600 text-xs mb-1 uppercase">Dica Rápida:</h4>
+                    <p id="guide-tip" class="text-xs text-slate-500 italic"></p>
+                </div>
+            </div>
+
+            <!-- Footer Fixo -->
+            <div class="p-4 border-t border-slate-100 bg-white">
+                <button onclick="closeGuide()" class="w-full bg-slate-900 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-slate-900/10 active:scale-95 transition-transform">
+                    Entendi, vamos lá!
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // --- DADOS DO TREINO (Mantidos) ---
+        // --- CONFIGURAÇÃO DA API ---
+        const RAPID_API_KEY = '25ba57433dmshd07c1b28823f21fp1327ddjsn00317a1fa67b';
+        const RAPID_API_HOST = 'exercisedb.p.rapidapi.com';
+        
+        // Mapeamento para Imagens (Os nomes aqui devem corresponder exatamente aos do WORKOUT_PLAN)
+        const API_MAPPING = {
+            'Abdominal Supra (Solo)': '0001',
+            'Abdominal Bicicleta': '0003',
+            'Toque no Calcanhar': '0006',
+            'Puxada Frontal': '0007',
+            'Elevação de Pernas': '0011',
+            'Mesa Flexora': '0057', // Exemplo de mapeamento extra
+            'Prancha Isométrica': '0465',
+        };
+
+        // --- DADOS DO TREINO COM DESCRIÇÕES 100% EM PORTUGUÊS ---
         const WORKOUT_PLAN = {
             A: {
-                title: "Treino A: Inferior (Quadríceps)",
-                description: "Alta intensidade, pouco descanso.",
+                title: "Treino A: Frente (Anterior)",
+                description: "Foco em Quadríceps, Peito e Ombros.",
                 exercises: [
-                    { id: 'a1', type: 'biset', title: 'Bi-Set: Pressão e Panturrilha', items: [{ name: 'Leg Press 45º', details: '4x 12 reps (~80kg+)' }, { name: 'Panturrilha no Leg', details: '4x 15 reps (Sem descanso)' }], restTime: 45 },
-                    { id: 'a2', type: 'single', title: 'Agachamento', items: [{ name: 'Agachamento', details: '3x 12 reps (Descida lenta: 3s)' }], restTime: 60 },
-                    { id: 'a3', type: 'single', title: 'Cadeira Extensora', items: [{ name: 'Cadeira Extensora', details: '3x 15 reps (Drop-set na última)' }], restTime: 45 },
-                    { id: 'a4', type: 'single', title: 'Cadeira Adutora', items: [{ name: 'Cadeira Adutora', details: '3x 20 reps (Espremer no meio)' }], restTime: 45 }
+                    { 
+                        id: 'abc_a1', type: 'biset', title: 'Bi-Set: Coxa e Ombro', 
+                        items: [
+                            { 
+                                name: 'Leg Press 45º', type: 'machine', details: '4x 12 reps (Carga Alta)',
+                                guide: 'Sente-se no aparelho com a coluna totalmente apoiada. Posicione os pés na largura dos ombros, no centro da plataforma. Destrave e desça o peso controladamente até seus joelhos formarem um ângulo de 90 graus. Empurre a plataforma usando a força dos calcanhares.',
+                                tip: 'Evite esticar completamente os joelhos no final do movimento para manter a tensão na coxa e proteger a articulação.'
+                            }, 
+                            { 
+                                name: 'Desenvolvimento Halteres', type: 'free', details: '4x 10 a 12 reps',
+                                guide: 'Sente-se em um banco com encosto vertical. Segure os halteres na altura das orelhas, com as palmas para frente. Empurre os pesos para cima até que os braços estejam esticados (sem travar o cotovelo) e desça de forma controlada até a altura das orelhas novamente.',
+                                tip: 'Mantenha o abdômen contraído para não arquear excessivamente a lombar.'
+                            }
+                        ], restTime: 45 
+                    },
+                    { 
+                        id: 'abc_a2', type: 'biset', title: 'Bi-Set: Extensão e Agachamento', 
+                        items: [
+                            { 
+                                name: 'Cadeira Extensora', type: 'machine', details: '3x 15 reps (Falha na última)',
+                                guide: 'Ajuste o encosto para que seu joelho fique alinhado com o eixo da máquina. Estenda as pernas completamente, segure por 1 segundo no topo e desça devagar, resistindo ao peso.',
+                                tip: 'Não deixe as placas de peso baterem na descida. Mantenha a tensão constante.'
+                            }, 
+                            { 
+                                name: 'Agachamento Globet', type: 'free', details: '3x 12 reps (Segura no peito)',
+                                guide: 'Em pé, segure um haltere verticalmente junto ao peito com as duas mãos. Afaste os pés na largura dos ombros. Agache jogando o quadril para trás e para baixo, mantendo o peito estufado e as costas retas.',
+                                tip: 'Tente encostar os cotovelos na parte interna dos joelhos na descida para garantir uma boa amplitude.'
+                            }
+                        ], restTime: 50 
+                    },
+                    { 
+                        id: 'abc_a3', type: 'biset', title: 'Bi-Set: Peito e Tríceps', 
+                        items: [
+                            { 
+                                name: 'Supino Máquina (ou Reto)', type: 'machine', details: '3x 12 reps',
+                                guide: 'Ajuste o banco para que as manoplas fiquem na linha do meio do peitoral. Empurre as manoplas para frente estendendo os braços e retorne controlando o peso até sentir o peitoral alongar.',
+                                tip: 'Mantenha os ombros baixos e longe das orelhas durante todo o movimento.'
+                            }, 
+                            { 
+                                name: 'Tríceps Banco (ou Testa)', type: 'free', details: '3x 12 a 15 reps',
+                                guide: 'Deite-se no banco segurando um haltere em cada mão (ou uma barra), braços esticados para o teto. Dobre apenas os cotovelos, descendo o peso em direção à testa ou ao lado das orelhas, e estenda novamente.',
+                                tip: 'Mantenha os cotovelos apontados para o teto, sem deixá-los abrir para os lados.'
+                            }
+                        ], restTime: 45 
+                    }
                 ]
             },
             B: {
-                title: "Treino B: Superior + Core",
-                description: "Manutenção de massa e postura.",
+                title: "Treino B: Costas (Posterior)",
+                description: "Foco em Posterior de Coxa, Glúteo e Costas.",
                 exercises: [
-                    { id: 'b1', type: 'biset', title: 'Bi-Set: Dorsal e Peito', items: [{ name: 'Puxada Frontal', details: '3x 12 reps' }, { name: 'Flexão de Braços', details: '3x Máximo' }], restTime: 50 },
-                    { id: 'b2', type: 'biset', title: 'Bi-Set: Remada e Tríceps', items: [{ name: 'Remada Baixa', details: '3x 12 a 15 reps' }, { name: 'Tríceps Pulley', details: '3x 12 a 15 reps' }], restTime: 50 },
-                    { id: 'b3', type: 'biset', title: 'Bi-Set: Ombros', items: [{ name: 'Desenvolvimento Halteres', details: '3x 10 reps' }, { name: 'Elevação Lateral', details: '3x 12 reps' }], restTime: 45 },
-                    { id: 'b4', type: 'biset', title: 'Bi-Set: Abdômen', items: [{ name: 'Prancha Abdominal', details: '3x 40s (Timer!)' }, { name: 'Abdominal Supra', details: '3x 20 reps' }], restTime: 45 }
+                    { 
+                        id: 'abc_b1', type: 'biset', title: 'Bi-Set: Costas e Posterior', 
+                        items: [
+                            { 
+                                name: 'Puxada Frontal', type: 'machine', details: '3x 12 reps',
+                                guide: 'Segure a barra com uma pegada aberta (maior que os ombros). Sente-se e prenda os joelhos. Incline levemente o tronco para trás e puxe a barra em direção ao peitoral superior, focando em esmagar as costas.',
+                                tip: 'Imagine que quer encostar seus cotovelos nas costelas ao puxar.'
+                            }, 
+                            { 
+                                name: 'Stiff c/ Halteres', type: 'free', details: '3x 12 reps',
+                                guide: 'Pés na largura do quadril, joelhos levemente flexionados (destravados). Segure os halteres à frente das coxas. Desça o tronco mantendo a coluna reta, empurrando o quadril para trás, até sentir alongar a parte de trás da coxa.',
+                                tip: 'O movimento é no quadril, não na coluna. Olhe para o chão para manter o pescoço alinhado.'
+                            }
+                        ], restTime: 50 
+                    },
+                    { 
+                        id: 'abc_b2', type: 'biset', title: 'Bi-Set: Remada e Glúteo', 
+                        items: [
+                            { 
+                                name: 'Remada Baixa', type: 'machine', details: '3x 12 reps',
+                                guide: 'Sente-se com a coluna reta. Segure o triângulo e puxe em direção ao umbigo, mantendo os cotovelos próximos ao corpo. Estenda os braços totalmente na volta, alongando as costas.',
+                                tip: 'Evite balançar o tronco para frente e para trás para ajudar a puxar o peso.'
+                            }, 
+                            { 
+                                name: 'Afundo (Halteres)', type: 'free', details: '3x 10 cada perna',
+                                guide: 'Em pé, segure halteres ao lado do corpo. Dê um passo largo para trás. Desça o joelho de trás em direção ao chão até formar um ângulo de 90 graus nas duas pernas. Suba fazendo força na perna da frente.',
+                                tip: 'Mantenha o tronco levemente inclinado para frente para ativar mais o glúteo.'
+                            }
+                        ], restTime: 50 
+                    },
+                    { 
+                        id: 'abc_b3', type: 'biset', title: 'Bi-Set: Isolado e Bíceps', 
+                        items: [
+                            { 
+                                name: 'Mesa Flexora', type: 'machine', details: '3x 12 reps',
+                                guide: 'Deite-se de bruços na máquina, alinhando os joelhos com o eixo de rotação. Contraia a parte de trás da coxa para trazer o rolo em direção ao glúteo e retorne devagar.',
+                                tip: 'Mantenha o quadril colado no banco durante todo o movimento. Não deixe ele subir.'
+                            }, 
+                            { 
+                                name: 'Rosca Martelo', type: 'free', details: '3x 12 reps',
+                                guide: 'Em pé, segure os halteres com as palmas das mãos voltadas para o corpo (pegada neutra). Flexione os cotovelos subindo o peso em direção ao ombro e desça controladamente.',
+                                tip: 'Mantenha os cotovelos fixos ao lado das costelas. Não use o balanço do corpo.'
+                            }
+                        ], restTime: 45 
+                    }
                 ]
             },
             C: {
-                title: "Treino C: Posterior e Glúteo",
-                description: "Foco na cadeia posterior.",
+                title: "Treino C: Core & Cardio",
+                description: "Abdômen Blindado e Foco na Corrida.",
                 exercises: [
-                    { id: 'c1', type: 'biset', title: 'Bi-Set: Pré-Exaustão', items: [{ name: 'Mesa Flexora', details: '4x 12 reps' }, { name: 'Cadeira Abdutora', details: '4x 20 reps (Inclinado)' }], restTime: 45 },
-                    { id: 'c2', type: 'single', title: 'Stiff', items: [{ name: 'Stiff', details: '3x 12 reps' }], restTime: 60 },
-                    { id: 'c3', type: 'single', title: 'Elevação Pélvica', items: [{ name: 'Elevação Pélvica', details: '3x 10 reps (Isometria)' }], restTime: 60 },
-                    { id: 'c4', type: 'single', title: 'Cadeira Flexora', items: [{ name: 'Cadeira Flexora', details: '3x 15 reps' }], restTime: 45 }
+                    { 
+                        id: 'abc_c1', type: 'biset', title: 'Bi-Set: Reto Abdominal', 
+                        items: [
+                            { 
+                                name: 'Abdominal Supra (Solo)', type: 'free', details: '3x 20 a 25 reps',
+                                guide: 'Deite de costas no colchonete, joelhos flexionados e pés no chão. Coloque as mãos atrás da cabeça ou no peito. Suba o tronco tirando apenas as escápulas do chão, contraindo o abdômen.',
+                                tip: 'Solte todo o ar pela boca quando subir. Olhe para um ponto fixo no teto na diagonal para não forçar o pescoço.'
+                            }, 
+                            { 
+                                name: 'Prancha Isométrica', type: 'free', details: '3x 30 a 45 seg',
+                                guide: 'Apoie os cotovelos e a ponta dos pés no chão. Mantenha o corpo em linha reta, da cabeça aos calcanhares. Contraia forte o glúteo e o abdômen, como se fosse levar um soco na barriga.',
+                                tip: 'Não deixe a lombar "selar" (cair) em direção ao chão. Se sentir dor nas costas, suba um pouco o quadril.'
+                            }
+                        ], restTime: 30 
+                    },
+                    { 
+                        id: 'abc_c2', type: 'biset', title: 'Bi-Set: Infra e Lombar', 
+                        items: [
+                            { 
+                                name: 'Elevação de Pernas', type: 'free', details: '3x 15 reps',
+                                guide: 'Deite de costas, coloque as mãos embaixo do glúteo para proteger a lombar. Mantenha as pernas estendidas (ou levemente flexionadas) e suba-as até 90 graus. Desça devagar sem encostar no chão.',
+                                tip: 'Foque a força na parte inferior da barriga. Se a lombar doer, dobre um pouco os joelhos.'
+                            }, 
+                            { 
+                                name: 'Hiperextensão Lombar', type: 'free', details: '3x 15 reps',
+                                guide: 'Deite de bruços no chão (posição Superman). Tire o peito e as pernas do chão simultaneamente, contraindo a lombar e os glúteos, e retorne.',
+                                tip: 'Não precisa subir excessivamente, apenas o suficiente para sentir a contração na lombar.'
+                            }
+                        ], restTime: 30 
+                    },
+                    { 
+                        id: 'abc_c3', type: 'biset', title: 'Bi-Set: Oblíquos', 
+                        items: [
+                            { 
+                                name: 'Abdominal Bicicleta', type: 'free', details: '3x 20 reps totais',
+                                guide: 'Deite de costas, mãos na cabeça. Tire os ombros do chão. Leve o cotovelo direito em direção ao joelho esquerdo enquanto estica a perna direita. Alterne os lados continuamente.',
+                                tip: 'O objetivo é girar o tronco, não apenas mexer os cotovelos.'
+                            }, 
+                            { 
+                                name: 'Toque no Calcanhar', type: 'free', details: '3x 20 reps totais',
+                                guide: 'Deite de costas, joelhos dobrados e pés no chão. Tire levemente os ombros do chão e incline o tronco lateralmente para tentar tocar a mão no calcanhar do mesmo lado.',
+                                tip: 'Mantenha o olhar para o teto ou entre os joelhos para não tensionar o pescoço.'
+                            }
+                        ], restTime: 30 
+                    }
                 ]
             }
         };
 
-        const RUNNING_PROTOCOL = [
-            { week: 'S1', action: '2 min Corre / 1 min Anda (15 min)' },
-            { week: 'S2', action: '3 min Corre / 1 min Anda (20 min)' },
-            { week: 'S3', action: '5 min Corre / 2 min Anda (25 min)' },
-            { week: 'S4', action: '10 a 15 min Contínuos (Teste)' },
+        const RUNNING_LEVELS = [
+            { id: 1, title: 'Nível 1 (Adaptação)', detail: '30s Trote Leve / 90s Caminhada', time: '15 min' },
+            { id: 2, title: 'Nível 2 (Progresso)', detail: '45s Trote Leve / 75s Caminhada', time: '18 min' },
+            { id: 3, title: 'Nível 3 (Desafio)', detail: '1 min Trote / 1 min Caminhada', time: '20 min' },
+            { id: 4, title: 'Nível 4 (Consistência)', detail: '1.5 min Trote / 1 min Caminhada', time: '22 min' },
+            { id: 5, title: 'Nível 5 (Meta)', detail: '2 a 3 min Trote / 1 min Caminhada', time: '25 min' }
         ];
 
         // --- SISTEMA DE DADOS (LOCALSTORAGE) ---
-        const DATA_KEY = 'operacao_dezembro_data_v2';
+        const DATA_KEY = 'operacao_dezembro_api_v2_ptbr';
+        let currentWorkoutKey = null;
 
         function getTodayKey() { return new Date().toLocaleDateString('pt-BR'); }
-
-        function getAllData() {
-            return JSON.parse(localStorage.getItem(DATA_KEY) || '{}');
-        }
-
+        function getAllData() { return JSON.parse(localStorage.getItem(DATA_KEY) || '{}'); }
         function getTodayData() {
-            const all = getAllData();
-            const today = getTodayKey();
-            if (!all[today]) all[today] = {};
-            return all[today];
+            const all = getAllData(); const today = getTodayKey();
+            if (!all[today]) all[today] = {}; return all[today];
         }
-
         function saveExerciseData(exerciseId, data) {
-            const all = getAllData();
-            const today = getTodayKey();
+            const all = getAllData(); const today = getTodayKey();
             if (!all[today]) all[today] = {};
-            
-            // Mescla os dados novos com os existentes para aquele exercício
             all[today][exerciseId] = { ...all[today][exerciseId], ...data };
-            
             localStorage.setItem(DATA_KEY, JSON.stringify(all));
         }
-
-        function getExerciseData(exerciseId) {
-            const todayData = getTodayData();
-            return todayData[exerciseId] || {};
-        }
+        function getExerciseData(exerciseId) { return getTodayData()[exerciseId] || {}; }
 
         // --- GLOBAL STATE ---
         let timerInterval = null;
@@ -157,39 +335,117 @@
         let timerMode = 'workout'; 
         let timerActive = false;
         let currentRestTime = 0;
-        let isMuted = false;
 
         const appDiv = document.getElementById('app');
         const modal = document.getElementById('timer-modal');
+        const guideModal = document.getElementById('guide-modal');
         const timerDisplay = document.getElementById('timer-display');
         const badgeMode = document.getElementById('modal-mode-badge');
 
+        // --- API & GUIDE LOGIC ---
+        
+        // Função ÚNICA de Fetch (Apenas Imagem)
+        async function fetchExerciseImage(id) {
+            const url = `https://${RAPID_API_HOST}/image?resolution=720&exerciseId=${id}`;
+            const options = {
+                method: 'GET',
+                headers: {
+                    'x-rapidapi-key': RAPID_API_KEY,
+                    'x-rapidapi-host': RAPID_API_HOST
+                }
+            };
+            try {
+                const response = await fetch(url, options);
+                if (!response.ok) throw new Error('Falha na Imagem');
+                
+                // Converte a resposta binária em Blob e depois em URL local
+                const blob = await response.blob();
+                return URL.createObjectURL(blob);
+            } catch (error) {
+                console.error(error);
+                return null;
+            }
+        }
+
+        async function openGuide(exerciseIndex, itemIndex) {
+            if (!currentWorkoutKey) return;
+            
+            const exercise = WORKOUT_PLAN[currentWorkoutKey].exercises[exerciseIndex].items[itemIndex];
+            const mappedId = API_MAPPING[exercise.name];
+
+            // 1. Configura Texto (SEMPRE em Português do WORKOUT_PLAN)
+            document.getElementById('guide-exercise-title').innerText = exercise.name;
+            document.getElementById('guide-text').innerText = exercise.guide || "Siga as orientações do seu treinador.";
+            document.getElementById('guide-tip').innerText = exercise.tip || "Mantenha a postura e respiração constantes.";
+            
+            // Badge visual
+            const badge = document.getElementById('guide-type-badge');
+            if (exercise.type === 'machine') {
+                badge.innerText = "Máquina / Guiado";
+                badge.className = "text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded mb-2 inline-block bg-blue-100 text-blue-700";
+            } else {
+                badge.innerText = "Peso Livre / Haltere";
+                badge.className = "text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded mb-2 inline-block bg-pink-100 text-pink-700";
+            }
+
+            // Elementos visuais
+            const gifImg = document.getElementById('guide-gif');
+            const loader = document.getElementById('guide-loader');
+            const noImgMsg = document.getElementById('guide-no-image');
+
+            guideModal.classList.remove('hidden');
+
+            // 2. Busca Imagem (Se houver ID mapeado)
+            if (mappedId) {
+                gifImg.classList.add('hidden');
+                noImgMsg.classList.add('hidden');
+                loader.classList.remove('hidden'); 
+
+                const apiImageBlobUrl = await fetchExerciseImage(mappedId);
+                
+                loader.classList.add('hidden');
+
+                if (apiImageBlobUrl) {
+                    gifImg.src = apiImageBlobUrl;
+                    gifImg.classList.remove('hidden');
+                } else {
+                    noImgMsg.innerText = "Imagem demonstrativa indisponível";
+                    noImgMsg.classList.remove('hidden');
+                }
+            } else {
+                // Modo Manual (Sem ID)
+                loader.classList.add('hidden');
+                gifImg.classList.add('hidden');
+                noImgMsg.classList.remove('hidden');
+                noImgMsg.innerText = "Imagem demonstrativa indisponível";
+            }
+        }
+
+        function closeGuide() { guideModal.classList.add('hidden'); }
+
         // --- RENDER HOME ---
         function renderHome() {
+            currentWorkoutKey = null;
             const today = new Date().getDay();
             const schedule = {
-                1: { key: 'A', title: 'Inferior (A)' },
-                2: { key: 'B', title: 'Superior (B)' },
-                3: { key: 'C', title: 'Posterior (C)' },
-                4: { key: 'B', title: 'Superior (B)' },
-                5: { key: 'A', title: 'Inferior (A)' },
-                6: { key: 'cardio', title: 'Cardio' },
+                1: { key: 'A', title: 'Frente (A)' },
+                2: { key: 'B', title: 'Trás (B)' },
+                3: { key: 'C', title: 'Core & Cardio (C)' },
+                4: { key: 'A', title: 'Frente (A)' },
+                5: { key: 'B', title: 'Trás (B)' },
+                6: { key: 'C', title: 'Core & Cardio (C)' },
                 0: { key: 'rest', title: 'Descanso' }
             };
 
             const suggestion = schedule[today] || schedule[0];
-            const todayData = getTodayData();
             const workoutsKeys = Object.keys(WORKOUT_PLAN);
             
-            // Verifica se tem algum dado salvo de corrida hoje para considerar "treino iniciado"
-            const activeToday = Object.keys(todayData).length > 0;
-
             let html = `
                 <div class="bg-slate-900 text-white p-5 sticky top-0 z-10 shadow-lg mb-4">
                     <div class="flex justify-between items-end">
                         <div>
                             <p class="text-xs text-emerald-400 font-bold uppercase tracking-widest mb-1">Operação Dezembro</p>
-                            <h1 class="text-2xl font-bold">Olá, Atleta!</h1>
+                            <h1 class="text-xl font-bold">Olá, Atleta!</h1>
                         </div>
                         <div class="text-right">
                              <p class="text-xs text-slate-400">Hoje</p>
@@ -198,23 +454,23 @@
                     </div>
                 </div>
 
-                <div class="p-4 space-y-6 fade-in">
+                <div class="p-4 space-y-6 fade-in pb-20">
             `;
 
-            if (suggestion.key !== 'rest' && suggestion.key !== 'cardio') {
+            if (suggestion.key !== 'rest') {
                  html += `
                     <button onclick="renderWorkout('${suggestion.key}')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white p-6 rounded-2xl shadow-xl shadow-emerald-900/20 text-left transition-transform active:scale-95 border border-emerald-500 relative overflow-hidden group">
                         <div class="relative z-10">
-                            <span class="bg-emerald-800 text-emerald-100 text-xs px-2 py-1 rounded font-bold uppercase">Sugestão do Dia</span>
+                            <span class="bg-emerald-800 text-emerald-100 text-xs px-2 py-1 rounded font-bold uppercase">Treino do Dia</span>
                             <h2 class="text-3xl font-bold mt-2 mb-1">Treino ${suggestion.key}</h2>
-                            <p class="text-emerald-100 text-sm opacity-90">Clique para iniciar o registro.</p>
+                            <p class="text-emerald-100 text-sm opacity-90">${WORKOUT_PLAN[suggestion.key].description}</p>
                         </div>
                         <i data-lucide="zap" class="absolute right-[-20px] bottom-[-20px] w-32 h-32 text-emerald-500 opacity-20 group-hover:scale-110 transition-transform"></i>
                     </button>
                  `;
             }
 
-            html += `<h3 class="font-bold text-slate-700 text-lg flex items-center gap-2 mt-6"><i data-lucide="list"></i> Todos os Treinos</h3>
+            html += `<h3 class="font-bold text-slate-700 text-lg flex items-center gap-2 mt-6"><i data-lucide="list"></i> Lista de Treinos</h3>
                      <div class="grid gap-3">`;
 
             workoutsKeys.forEach(key => {
@@ -223,7 +479,7 @@
                     <button onclick="renderWorkout('${key}')" class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex justify-between items-center hover:border-emerald-500 transition-colors text-left">
                         <div>
                             <h4 class="font-bold text-slate-800">${plan.title}</h4>
-                            <p class="text-xs text-slate-500">${plan.exercises.length} exercícios</p>
+                            <p class="text-xs text-slate-500">${plan.description}</p>
                         </div>
                         <div class="bg-slate-100 p-2 rounded-full text-slate-400">
                             <i data-lucide="chevron-right" width="20"></i>
@@ -239,8 +495,10 @@
 
         // --- RENDER WORKOUT ---
         function renderWorkout(key) {
+            currentWorkoutKey = key;
             const plan = WORKOUT_PLAN[key];
             const storedRun = getExerciseData(`run_${key}`);
+            const savedLevel = storedRun.level || 1;
 
             let html = `
                 <div class="bg-white border-b border-slate-200 sticky top-0 z-20 px-4 py-3 flex items-center gap-3 shadow-sm">
@@ -249,38 +507,48 @@
                     </button>
                     <div>
                         <h1 class="font-bold text-lg leading-tight text-slate-800">${plan.title}</h1>
-                        <p class="text-xs text-slate-500">Registre cargas e repetições</p>
+                        <p class="text-xs text-slate-500">Toque no nome para ver como fazer</p>
                     </div>
                 </div>
 
                 <div class="p-4 space-y-4 pb-32 max-w-lg mx-auto">
             `;
 
-            // Exercises Cards
-            plan.exercises.forEach(ex => {
-                const stored = getExerciseData(ex.id); // { items: [{w, r}, {w, r}], done: bool }
+            plan.exercises.forEach((ex, exIdx) => {
+                const stored = getExerciseData(ex.id);
                 const isDone = stored.done;
-                const safeEx = JSON.stringify(ex).replace(/"/g, '&quot;');
-
-                // Generate Items HTML with Inputs
+                
                 let itemsHtml = '';
-                ex.items.forEach((item, idx) => {
-                    const savedWeight = stored.items?.[idx]?.weight || '';
-                    const savedReps = stored.items?.[idx]?.reps || '';
+                ex.items.forEach((item, itemIdx) => {
+                    const savedWeight = stored.items?.[itemIdx]?.weight || '';
+                    const savedReps = stored.items?.[itemIdx]?.reps || '';
+                    
+                    const badge = item.type === 'machine' 
+                        ? `<span class="badge-machine">Máquina</span>` 
+                        : `<span class="badge-free">Livre</span>`;
+
+                    const hasApi = API_MAPPING[item.name];
+                    const apiIcon = hasApi ? '<i data-lucide="globe" width="14" class="text-blue-400"></i>' : '<i data-lucide="info" width="14" class="text-slate-400"></i>';
+
+                    const nameButton = `
+                        <button onclick="openGuide(${exIdx}, ${itemIdx})" class="font-bold text-slate-700 text-sm flex items-center gap-2 hover:text-emerald-600 underline decoration-dotted underline-offset-4 decoration-slate-300 text-left transition-colors">
+                            ${item.name} ${apiIcon} ${badge}
+                        </button>
+                    `;
 
                     itemsHtml += `
-                        <div class="mb-3 last:mb-0">
-                            <div class="flex justify-between items-baseline mb-1">
-                                <span class="font-bold text-slate-700 text-sm">${item.name}</span>
-                                <span class="text-[10px] text-slate-400 font-mono">${item.details.split('(')[0]}</span>
+                        <div class="mb-4 last:mb-0">
+                            <div class="flex justify-between items-baseline mb-2">
+                                ${nameButton}
                             </div>
+                            <p class="text-[10px] text-slate-400 font-mono mb-2 pl-1 border-l-2 border-slate-200">${item.details}</p>
                             <div class="flex gap-2">
                                 <div class="relative w-1/2">
-                                    <input type="number" placeholder="kg" value="${savedWeight}" id="w-${ex.id}-${idx}" class="input-compact pl-7" inputmode="numeric">
+                                    <input type="number" placeholder="kg" value="${savedWeight}" id="w-${ex.id}-${itemIdx}" class="input-compact pl-7" inputmode="numeric">
                                     <span class="absolute left-2 top-1.5 text-xs text-slate-400 font-bold">Kg</span>
                                 </div>
                                 <div class="relative w-1/2">
-                                    <input type="number" placeholder="Reps" value="${savedReps}" id="r-${ex.id}-${idx}" class="input-compact pl-2 text-center" inputmode="numeric">
+                                    <input type="number" placeholder="Reps" value="${savedReps}" id="r-${ex.id}-${itemIdx}" class="input-compact pl-2 text-center" inputmode="numeric">
                                 </div>
                             </div>
                         </div>
@@ -289,25 +557,18 @@
 
                 html += `
                     <div id="card-${ex.id}" class="bg-white rounded-xl border-2 ${isDone ? 'card-done' : 'border-slate-200'} shadow-sm transition-all duration-300">
-                        <!-- Header Card -->
                         <div class="p-4 pb-2 border-b border-slate-100/50 flex justify-between items-center">
-                            <span class="text-[10px] font-bold uppercase tracking-wider ${ex.type === 'biset' ? 'text-amber-600 bg-amber-50' : 'text-blue-600 bg-blue-50'} px-2 py-0.5 rounded">
-                                ${ex.type === 'biset' ? 'Bi-Set' : 'Série Normal'}
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 px-2 py-0.5 rounded">
+                                Bi-Set
                             </span>
                             <span class="text-xs text-slate-400 flex items-center gap-1">
                                 <i data-lucide="clock" width="12"></i> ${ex.restTime}s
                             </span>
                         </div>
-                        
-                        <!-- Inputs Content -->
-                        <div class="p-4">
-                            ${itemsHtml}
-                        </div>
-
-                        <!-- Action Footer (Buttons Row) -->
+                        <div class="p-4">${itemsHtml}</div>
                         <div class="p-2 border-t border-slate-100 grid grid-cols-3 gap-2">
                             <button onclick="openTimer('workout', '${ex.title}', 0)" class="action-btn btn-exec">
-                                <i data-lucide="play" width="16"></i> Executar
+                                <i data-lucide="play" width="16"></i> Timer
                             </button>
                             <button onclick="openTimer('rest', 'Descanso', ${ex.restTime})" class="action-btn btn-rest">
                                 <i data-lucide="timer" width="16"></i> Descanso
@@ -322,36 +583,43 @@
 
             // Running Card
             const runDone = storedRun.done;
-            const weekProto = RUNNING_PROTOCOL[0].action; // Exemplo fixo na semana 1 ou lógica de data poderia ser aplicada
+            const optionsHtml = RUNNING_LEVELS.map(l => `<option value="${l.id}" ${savedLevel == l.id ? 'selected' : ''}>${l.title}</option>`).join('');
+            const currentLevel = RUNNING_LEVELS.find(l => l.id == savedLevel) || RUNNING_LEVELS[0];
 
             html += `
                 <div id="card-run_${key}" class="bg-white rounded-xl border-2 ${runDone ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200'} shadow-sm mt-6">
                     <div class="p-4 border-b border-slate-100 flex justify-between items-center">
                         <h3 class="font-bold text-slate-800 flex items-center gap-2">
-                            <i data-lucide="wind" class="text-blue-500"></i> Pós-Treino: Corrida
+                            <i data-lucide="wind" class="text-blue-500"></i> ${key === 'C' ? 'Treino Principal: Corrida' : 'Pós-Treino: Corrida'}
                         </h3>
                     </div>
                     <div class="p-4 space-y-3">
-                        <p class="text-xs text-slate-500 bg-slate-100 p-2 rounded">Meta: ${weekProto}</p>
+                        <div class="bg-blue-50 p-3 rounded-lg mb-2 border border-blue-100">
+                            <label class="text-xs font-bold text-blue-800 uppercase block mb-1">Selecione seu Nível Hoje:</label>
+                            <select id="run-level-select" onchange="updateRunLevelDisplay(this.value)" class="w-full text-sm p-2 rounded border border-blue-200 bg-white text-slate-700 font-semibold">
+                                ${optionsHtml}
+                            </select>
+                        </div>
+
+                        <div id="run-details-box" class="text-center py-2">
+                             <p class="text-2xl font-bold text-slate-700" id="run-time-display">${currentLevel.time}</p>
+                             <p class="text-sm text-emerald-600 font-medium" id="run-detail-display">${currentLevel.detail}</p>
+                        </div>
                         
-                        <div class="grid grid-cols-3 gap-2">
+                        <div class="grid grid-cols-2 gap-2 mt-2">
                             <div>
-                                <label class="text-[10px] font-bold text-slate-400 uppercase">Tempo</label>
-                                <input type="number" id="run-time" value="${storedRun.time || ''}" placeholder="min" class="input-compact" inputmode="numeric">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase">Distância (km)</label>
+                                <input type="number" id="run-dist" value="${storedRun.dist || ''}" placeholder="0.0" class="input-compact" inputmode="decimal">
                             </div>
                             <div>
-                                <label class="text-[10px] font-bold text-slate-400 uppercase">Distância</label>
-                                <input type="number" id="run-dist" value="${storedRun.dist || ''}" placeholder="km" class="input-compact" inputmode="decimal">
-                            </div>
-                            <div>
-                                <label class="text-[10px] font-bold text-slate-400 uppercase">Vel. Méd</label>
-                                <input type="number" id="run-speed" value="${storedRun.speed || ''}" placeholder="km/h" class="input-compact" inputmode="decimal">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase">Velocidade (km/h)</label>
+                                <input type="number" id="run-speed" value="${storedRun.speed || ''}" placeholder="0.0" class="input-compact" inputmode="decimal">
                             </div>
                         </div>
                     </div>
                     <div class="p-2 border-t border-slate-100">
                         <button onclick="saveRun('run_${key}')" class="w-full action-btn ${runDone ? 'btn-check checked' : 'btn-check'}">
-                            <i data-lucide="save"></i> ${runDone ? 'Corrida Salva' : 'Salvar Dados da Corrida'}
+                            <i data-lucide="save"></i> ${runDone ? 'Salvo' : 'Salvar Corrida'}
                         </button>
                     </div>
                 </div>
@@ -363,31 +631,27 @@
             window.scrollTo(0, 0);
         }
 
-        // --- LOGIC: CARDS & DATA ---
+        function updateRunLevelDisplay(levelId) {
+            const level = RUNNING_LEVELS.find(l => l.id == levelId);
+            if(level) {
+                document.getElementById('run-time-display').innerText = level.time;
+                document.getElementById('run-detail-display').innerText = level.detail;
+            }
+        }
 
         function toggleDone(exId, itemsCount) {
             const card = document.getElementById(`card-${exId}`);
             const btn = document.getElementById(`btn-check-${exId}`);
-            
-            // Coletar dados dos inputs
             const itemsData = [];
             for(let i=0; i<itemsCount; i++) {
                 const w = document.getElementById(`w-${exId}-${i}`).value;
                 const r = document.getElementById(`r-${exId}-${i}`).value;
                 itemsData.push({ weight: w, reps: r });
             }
-
-            // Verifica estado atual
             const currentData = getExerciseData(exId);
             const newState = !currentData.done;
+            saveExerciseData(exId, { done: newState, items: itemsData });
 
-            // Salva
-            saveExerciseData(exId, { 
-                done: newState,
-                items: itemsData
-            });
-
-            // Atualiza UI
             if (newState) {
                 card.classList.add('card-done');
                 card.classList.remove('border-slate-200');
@@ -404,42 +668,24 @@
         }
 
         function saveRun(runId) {
-            const time = document.getElementById('run-time').value;
             const dist = document.getElementById('run-dist').value;
             const speed = document.getElementById('run-speed').value;
-
-            if(!time && !dist) {
-                alert("Preencha pelo menos o tempo ou distância.");
-                return;
-            }
-
-            saveExerciseData(runId, {
-                done: true,
-                time, dist, speed
-            });
-
+            const level = document.getElementById('run-level-select').value;
+            saveExerciseData(runId, { done: true, dist, speed, level });
             const card = document.getElementById(`card-${runId}`);
             card.classList.remove('border-slate-200');
             card.classList.add('border-emerald-500', 'bg-emerald-50');
-            
-            // Feedback visual no botão
             const btn = card.querySelector('button');
-            btn.innerHTML = `<i data-lucide="check"></i> Salvo com Sucesso!`;
+            btn.innerHTML = `<i data-lucide="check"></i> Salvo!`;
             btn.classList.add('checked');
-            
             confetti({ particleCount: 100, spread: 70, origin: { y: 0.8 } });
             lucide.createIcons();
         }
 
-        // --- LOGIC: TIMER MODAL ---
-
         function openTimer(mode, title, duration) {
-            // Setup Modal
             timerMode = mode;
             currentRestTime = duration;
             document.getElementById('modal-title').innerText = title;
-            
-            // Setup UI based on mode
             if (mode === 'workout') {
                 timerTime = 0;
                 badgeMode.innerText = "Execução";
@@ -455,9 +701,8 @@
                 timerDisplay.classList.add('text-amber-400');
                 timerDisplay.classList.remove('text-white');
             }
-
             updateDisplay();
-            stopTimer(); // Reset state
+            stopTimer();
             modal.classList.remove('hidden');
         }
 
@@ -467,32 +712,19 @@
             timerDisplay.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
         }
 
-        function toggleTimer() {
-            if (timerActive) {
-                stopTimer();
-            } else {
-                startTimer();
-            }
-        }
-
+        function toggleTimer() { if (timerActive) stopTimer(); else startTimer(); }
+        
         function startTimer() {
             timerActive = true;
             document.getElementById('lbl-toggle').innerText = "Pausar";
             const btn = document.getElementById('btn-toggle-timer');
             btn.classList.remove('bg-emerald-500', 'hover:bg-emerald-600');
             btn.classList.add('bg-red-500', 'hover:bg-red-600');
-
             timerInterval = setInterval(() => {
                 if (timerMode === 'rest') {
-                    if (timerTime <= 0) {
-                        playBeep();
-                        stopTimer();
-                        return;
-                    }
+                    if (timerTime <= 0) { playBeep(); stopTimer(); return; }
                     timerTime--;
-                } else {
-                    timerTime++;
-                }
+                } else { timerTime++; }
                 updateDisplay();
             }, 1000);
         }
@@ -504,17 +736,9 @@
             const btn = document.getElementById('btn-toggle-timer');
             btn.classList.add('bg-emerald-500', 'hover:bg-emerald-600');
             btn.classList.remove('bg-red-500', 'hover:bg-red-600');
-            
-            if(timerMode === 'rest' && timerTime === currentRestTime) {
-                 document.getElementById('lbl-toggle').innerText = "Iniciar Contagem";
-            }
         }
 
-        function resetTimer() {
-            stopTimer();
-            timerTime = timerMode === 'rest' ? currentRestTime : 0;
-            updateDisplay();
-        }
+        function resetTimer() { stopTimer(); timerTime = timerMode === 'rest' ? currentRestTime : 0; updateDisplay(); }
 
         function playBeep() {
             const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -532,14 +756,11 @@
             osc.stop(ctx.currentTime + 0.5);
         }
 
-        // Listeners
         document.getElementById('btn-close-modal').onclick = () => { modal.classList.add('hidden'); stopTimer(); };
         document.getElementById('btn-toggle-timer').onclick = toggleTimer;
         document.getElementById('btn-reset-timer').onclick = resetTimer;
 
-        // Init
         renderHome();
-
     </script>
 </body>
 </html>
