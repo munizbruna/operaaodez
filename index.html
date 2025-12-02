@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Operação Dezembro - Guia em Português</title>
+    <title>Desafio Barriga Zero - Bruna</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -24,10 +24,10 @@
             border-radius: 6px; padding: 4px 8px; font-size: 0.875rem; 
             width: 100%; transition: all 0.2s;
         }
-        .input-compact:focus { border-color: #10b981; outline: none; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1); }
+        .input-compact:focus { border-color: #ec4899; outline: none; box-shadow: 0 0 0 2px rgba(236, 72, 153, 0.1); }
         
-        .card-done { border-color: #10b981; background-color: #ecfdf5; }
-        .card-done .input-compact { background: white; border-color: #bef264; }
+        .card-done { border-color: #ec4899; background-color: #fdf2f8; }
+        .card-done .input-compact { background: white; border-color: #fbcfe8; }
         
         .action-btn {
             display: flex; align-items: center; justify-content: center;
@@ -40,18 +40,34 @@
         .btn-rest { background: #fff7ed; color: #c2410c; }
         .btn-rest:active { background: #ffedd5; }
         
-        .btn-check { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
-        .btn-check.checked { background: #10b981; color: white; border-color: #059669; }
+        .btn-check { background: #fdf2f8; color: #be185d; border: 1px solid #fbcfe8; }
+        .btn-check.checked { background: #db2777; color: white; border-color: #be185d; }
 
-        .badge-machine { background-color: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; }
-        .badge-free { background-color: #fce7f3; color: #be185d; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; }
+        .badge-bi { background-color: #fce7f3; color: #be185d; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; }
         
         /* Spinner de Carregamento */
         .loader {
-            border: 3px solid #f3f3f3; border-top: 3px solid #10b981;
+            border: 3px solid #f3f3f3; border-top: 3px solid #ec4899;
             border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Container de Vídeo Responsivo (16:9) */
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            height: 0;
+            overflow: hidden;
+            border-radius: 0.75rem;
+            background-color: #000;
+        }
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen font-sans text-slate-800 pb-24 select-none">
@@ -66,13 +82,13 @@
             </button>
             <div class="p-6 text-center">
                 <div class="mb-4">
-                    <span id="modal-mode-badge" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide bg-emerald-500 text-white">Execução</span>
+                    <span id="modal-mode-badge" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide bg-pink-500 text-white">Execução</span>
                 </div>
                 <h3 id="modal-title" class="text-lg font-bold text-white mb-2"></h3>
                 <div id="timer-display" class="text-7xl font-mono font-bold mb-8 tabular-nums text-white tracking-tighter">0:00</div>
                 
                 <div class="grid grid-cols-2 gap-4 mb-6">
-                    <button id="btn-toggle-timer" class="flex items-center justify-center gap-2 p-4 rounded-xl font-bold text-lg transition-all bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-900/20">
+                    <button id="btn-toggle-timer" class="flex items-center justify-center gap-2 p-4 rounded-xl font-bold text-lg transition-all bg-pink-500 hover:bg-pink-600 text-white shadow-lg shadow-pink-900/20">
                         <i data-lucide="play"></i> <span id="lbl-toggle">Iniciar</span>
                     </button>
                     <button id="btn-reset-timer" class="flex items-center justify-center gap-2 p-4 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-bold text-lg">
@@ -84,14 +100,13 @@
         </div>
     </div>
 
-    <!-- Modal de Guia de Exercício (API Integrada para Imagem) -->
+    <!-- Modal de Vídeo/Guia -->
     <div id="guide-modal" class="fixed inset-0 modal-overlay z-[60] hidden flex flex-col items-center justify-center p-4 fade-in">
         <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl relative overflow-hidden border border-slate-200 flex flex-col max-h-[90vh]">
             
-            <!-- Header Fixo -->
             <div class="p-4 border-b border-slate-100 flex justify-between items-start bg-white z-10">
                 <div>
-                    <span id="guide-type-badge" class="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded mb-1 inline-block"></span>
+                    <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded mb-1 inline-block bg-pink-100 text-pink-700">Instrução</span>
                     <h3 id="guide-exercise-title" class="text-xl font-bold text-slate-800 leading-tight"></h3>
                 </div>
                 <button onclick="closeGuide()" class="p-2 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors">
@@ -99,220 +114,306 @@
                 </button>
             </div>
             
-            <!-- Conteúdo com Scroll -->
             <div class="overflow-y-auto p-4 flex-1">
-                <!-- Área da Imagem/GIF da API -->
-                <div id="api-image-container" class="w-full h-48 bg-slate-100 rounded-lg mb-4 flex items-center justify-center overflow-hidden border border-slate-200 relative">
-                    <img id="guide-gif" src="" alt="Execução" class="w-full h-full object-contain hidden" />
-                    <div id="guide-loader" class="loader hidden"></div>
-                    <span id="guide-no-image" class="text-xs text-slate-400 hidden">Imagem não disponível</span>
+                <!-- Área do Vídeo (Iframe) -->
+                <div id="video-wrapper" class="hidden mb-6 shadow-lg">
+                    <div class="video-container">
+                        <div id="youtube-player-slot"></div>
+                    </div>
+                </div>
+                
+                <!-- Mensagem sem vídeo -->
+                <div id="no-video-msg" class="hidden mb-6 text-center p-6 bg-slate-100 rounded-xl border border-slate-200">
+                    <i data-lucide="video-off" class="mx-auto text-slate-400 mb-2" width="24"></i>
+                    <p class="text-sm text-slate-500">Vídeo indisponível no momento.</p>
                 </div>
 
                 <div class="bg-blue-50 p-4 rounded-xl mb-4 border border-blue-100">
                     <h4 class="font-bold text-blue-800 text-sm mb-2 flex items-center gap-2">
-                        <i data-lucide="info" width="16"></i> Instruções em Português:
+                        <i data-lucide="info" width="16"></i> Dica Técnica:
                     </h4>
                     <div id="guide-text" class="text-sm text-blue-900 leading-relaxed space-y-2"></div>
                 </div>
-
-                <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
-                    <h4 class="font-bold text-slate-600 text-xs mb-1 uppercase">Dica Rápida:</h4>
-                    <p id="guide-tip" class="text-xs text-slate-500 italic"></p>
-                </div>
             </div>
 
-            <!-- Footer Fixo -->
             <div class="p-4 border-t border-slate-100 bg-white">
                 <button onclick="closeGuide()" class="w-full bg-slate-900 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-slate-900/10 active:scale-95 transition-transform">
-                    Entendi, vamos lá!
+                    Entendi, bora treinar!
                 </button>
             </div>
         </div>
     </div>
 
     <script>
-        // --- CONFIGURAÇÃO DA API ---
-        const RAPID_API_KEY = '25ba57433dmshd07c1b28823f21fp1327ddjsn00317a1fa67b';
-        const RAPID_API_HOST = 'exercisedb.p.rapidapi.com';
-        
-        // Mapeamento para Imagens (Os nomes aqui devem corresponder exatamente aos do WORKOUT_PLAN)
-        const API_MAPPING = {
-            'Abdominal Supra (Solo)': '0001',
-            'Abdominal Bicicleta': '0003',
-            'Toque no Calcanhar': '0006',
-            'Puxada Frontal': '0007',
-            'Elevação de Pernas': '0011',
-            'Mesa Flexora': '0057', // Exemplo de mapeamento extra
-            'Prancha Isométrica': '0465',
-        };
-
-        // --- DADOS DO TREINO COM DESCRIÇÕES 100% EM PORTUGUÊS ---
+        // --- DADOS DO TREINO (ADAPTADO PARA BRUNA) ---
         const WORKOUT_PLAN = {
-            A: {
-                title: "Treino A: Frente (Anterior)",
-                description: "Foco em Quadríceps, Peito e Ombros.",
+            HIIT: {
+                title: "Treino HIIT (Vídeo)",
+                description: "Acompanhe o vídeo e use o timer.",
+                // URL DO VÍDEO SOLICITADO
+                videoUrl: "https://player.scaleup.com.br/embed/e0229955ffae46810c47ae0c30708d3e5755accf",
                 exercises: [
                     { 
-                        id: 'abc_a1', type: 'biset', title: 'Bi-Set: Coxa e Ombro', 
+                        id: 'h_01', type: 'biset', title: 'Bloco 1: Aquecimento', 
                         items: [
                             { 
-                                name: 'Leg Press 45º', type: 'machine', details: '4x 12 reps (Carga Alta)',
-                                guide: 'Sente-se no aparelho com a coluna totalmente apoiada. Posicione os pés na largura dos ombros, no centro da plataforma. Destrave e desça o peso controladamente até seus joelhos formarem um ângulo de 90 graus. Empurre a plataforma usando a força dos calcanhares.',
-                                tip: 'Evite esticar completamente os joelhos no final do movimento para manter a tensão na coxa e proteger a articulação.'
-                            }, 
+                                name: 'Polichinelos (Exemplo)', 
+                                details: '30 a 45 seg',
+                                guide: 'Salte abrindo pernas e braços simultaneamente. Mantenha o abdômen contraído.',
+                                video: '#'
+                            },
                             { 
-                                name: 'Desenvolvimento Halteres', type: 'free', details: '4x 10 a 12 reps',
-                                guide: 'Sente-se em um banco com encosto vertical. Segure os halteres na altura das orelhas, com as palmas para frente. Empurre os pesos para cima até que os braços estejam esticados (sem travar o cotovelo) e desça de forma controlada até a altura das orelhas novamente.',
-                                tip: 'Mantenha o abdômen contraído para não arquear excessivamente a lombar.'
+                                name: 'Corrida Estacionária', 
+                                details: '30 a 45 seg',
+                                guide: 'Corra no lugar elevando bem os joelhos.',
+                                video: '#'
+                            }
+                        ], restTime: 15 
+                    },
+                    { 
+                        id: 'h_02', type: 'biset', title: 'Bloco 2: Alta Intensidade', 
+                        items: [
+                            { 
+                                name: 'Agachamento com Salto', 
+                                details: '30 seg (Máxima Intensidade)',
+                                guide: 'Agache e suba explodindo em um salto. Amorteça a queda.',
+                                video: '#'
+                            },
+                            { 
+                                name: 'Mountain Climbers', 
+                                details: '30 seg (Máxima Intensidade)',
+                                guide: 'Em posição de prancha, traga os joelhos ao peito alternadamente em velocidade.',
+                                video: '#'
+                            }
+                        ], restTime: 30 
+                    },
+                    { 
+                        id: 'h_03', type: 'biset', title: 'Bloco 3: Core', 
+                        items: [
+                            { 
+                                name: 'Prancha Toca Ombro', 
+                                details: '40 seg',
+                                guide: 'Em posição de prancha, toque a mão direita no ombro esquerdo e vice-versa, sem girar o quadril.',
+                                video: '#'
+                            },
+                            { 
+                                name: 'Burpee (Opcional)', 
+                                details: '10 reps ou 30 seg',
+                                guide: 'Mãos no chão, jogue os pés atrás, volte e salte. Se for muito difícil, faça sem o salto (Sprawl).',
+                                video: '#'
                             }
                         ], restTime: 45 
-                    },
+                    }
+                ]
+            },
+            A: {
+                title: "Treino A: Full Body 1",
+                description: "Foco: Quadríceps + Costas/Peito/Ombro",
+                exercises: [
                     { 
-                        id: 'abc_a2', type: 'biset', title: 'Bi-Set: Extensão e Agachamento', 
+                        id: 'a_aq', type: 'single', title: 'Aquecimento', 
                         items: [
                             { 
-                                name: 'Cadeira Extensora', type: 'machine', details: '3x 15 reps (Falha na última)',
-                                guide: 'Ajuste o encosto para que seu joelho fique alinhado com o eixo da máquina. Estenda as pernas completamente, segure por 1 segundo no topo e desça devagar, resistindo ao peso.',
-                                tip: 'Não deixe as placas de peso baterem na descida. Mantenha a tensão constante.'
-                            }, 
-                            { 
-                                name: 'Agachamento Globet', type: 'free', details: '3x 12 reps (Segura no peito)',
-                                guide: 'Em pé, segure um haltere verticalmente junto ao peito com as duas mãos. Afaste os pés na largura dos ombros. Agache jogando o quadril para trás e para baixo, mantendo o peito estufado e as costas retas.',
-                                tip: 'Tente encostar os cotovelos na parte interna dos joelhos na descida para garantir uma boa amplitude.'
+                                name: 'Mobilidade + Agachamento Peso Corporal', 
+                                details: '1x 15 reps',
+                                guide: 'Faça movimentos controlados para lubrificar as articulações.',
+                                video: 'https://www.youtube.com/watch?v=86ZW7tmmLuU'
                             }
-                        ], restTime: 50 
+                        ], restTime: 0 
                     },
                     { 
-                        id: 'abc_a3', type: 'biset', title: 'Bi-Set: Peito e Tríceps', 
+                        id: 'a_b1', type: 'biset', title: 'Bi-set 01', 
                         items: [
                             { 
-                                name: 'Supino Máquina (ou Reto)', type: 'machine', details: '3x 12 reps',
-                                guide: 'Ajuste o banco para que as manoplas fiquem na linha do meio do peitoral. Empurre as manoplas para frente estendendo os braços e retorne controlando o peso até sentir o peitoral alongar.',
-                                tip: 'Mantenha os ombros baixos e longe das orelhas durante todo o movimento.'
-                            }, 
+                                name: 'Agachamento Livre', 
+                                details: '3x 10 a 12 reps',
+                                guide: 'Mantenha a coluna reta e desça até a coxa ficar paralela ao chão.',
+                                video: 'https://www.youtube.com/watch?v=86ZW7tmmLuU'
+                            },
                             { 
-                                name: 'Tríceps Banco (ou Testa)', type: 'free', details: '3x 12 a 15 reps',
-                                guide: 'Deite-se no banco segurando um haltere em cada mão (ou uma barra), braços esticados para o teto. Dobre apenas os cotovelos, descendo o peso em direção à testa ou ao lado das orelhas, e estenda novamente.',
-                                tip: 'Mantenha os cotovelos apontados para o teto, sem deixá-los abrir para os lados.'
+                                name: 'Puxada Alta Frente (ou Remada Curvada)', 
+                                details: '3x 10 a 12 reps',
+                                guide: 'Puxe a barra em direção ao peito, fechando as escápulas.',
+                                video: 'https://www.youtube.com/watch?v=Xn-fIQw08q4'
+                            }
+                        ], restTime: 60 
+                    },
+                    { 
+                        id: 'a_b2', type: 'biset', title: 'Bi-set 02', 
+                        items: [
+                            { 
+                                name: 'Leg Press 45', 
+                                details: '3x 10 a 12 reps',
+                                guide: 'Não estenda totalmente os joelhos no final do movimento.',
+                                video: 'https://www.youtube.com/watch?v=HG2vEDoCgcA'
+                            },
+                            { 
+                                name: 'Elevação Lateral', 
+                                details: '3x 10 a 12 reps',
+                                guide: 'Leve os halteres até o aparelho de Leg Press para otimizar o tempo.',
+                                video: 'https://www.youtube.com/shorts/nhQ4mdk0TmM'
+                            }
+                        ], restTime: 60 
+                    },
+                    { 
+                        id: 'a_b3', type: 'biset', title: 'Bi-set 03', 
+                        items: [
+                            { 
+                                name: 'Cadeira Extensora', 
+                                details: '3x 10 a 12 reps',
+                                guide: 'Segure 1 segundo no topo da contração (perna esticada).',
+                                video: 'https://www.youtube.com/watch?v=pJZXbaF-MCM'
+                            },
+                            { 
+                                name: 'Voador (Peitoral)', 
+                                details: '3x 10 a 12 reps',
+                                guide: 'Mantenha os cotovelos levemente flexionados e peito estufado.',
+                                video: 'https://www.youtube.com/watch?v=a5XwjsD3AOI'
+                            }
+                        ], restTime: 60 
+                    },
+                    { 
+                        id: 'a_b4', type: 'biset', title: 'Bi-set 04', 
+                        items: [
+                            { 
+                                name: 'Gêmeos em Pé', 
+                                details: '3x 10 a 12 reps',
+                                guide: 'Amplitude máxima: suba tudo e desça tudo.',
+                                video: 'https://www.youtube.com/watch?v=5BeosiUEQgA'
+                            },
+                            { 
+                                name: 'Tríceps Pulley (Barra W)', 
+                                details: '3x 10 a 12 reps',
+                                guide: 'Cotovelos colados no corpo, mova apenas o antebraço.',
+                                video: 'https://www.youtube.com/watch?v=CJrOh5oPoRY'
+                            }
+                        ], restTime: 60 
+                    },
+                    { 
+                        id: 'a_fim', type: 'biset', title: 'Finalizador', 
+                        items: [
+                            { 
+                                name: 'Rosca Martelo', 
+                                details: '3x 10 a 12 reps',
+                                guide: 'Pegada neutra (palmas voltadas para dentro).',
+                                video: 'https://www.youtube.com/watch?v=E0l0yA_tY6U'
+                            },
+                            { 
+                                name: 'Abdominal Reto', 
+                                details: '3x 10 a 12 reps',
+                                guide: 'Concentre a força no abdômen, solte o ar ao subir.',
+                                video: 'https://www.youtube.com/watch?v=9eeeUjV4r_I'
                             }
                         ], restTime: 45 
                     }
                 ]
             },
             B: {
-                title: "Treino B: Costas (Posterior)",
-                description: "Foco em Posterior de Coxa, Glúteo e Costas.",
+                title: "Treino B: Full Body 2",
+                description: "Foco: Posterior/Glúteo + Costas/Peito/Ombro",
                 exercises: [
                     { 
-                        id: 'abc_b1', type: 'biset', title: 'Bi-Set: Costas e Posterior', 
+                        id: 'b_aq', type: 'single', title: 'Aquecimento', 
                         items: [
                             { 
-                                name: 'Puxada Frontal', type: 'machine', details: '3x 12 reps',
-                                guide: 'Segure a barra com uma pegada aberta (maior que os ombros). Sente-se e prenda os joelhos. Incline levemente o tronco para trás e puxe a barra em direção ao peitoral superior, focando em esmagar as costas.',
-                                tip: 'Imagine que quer encostar seus cotovelos nas costelas ao puxar.'
-                            }, 
-                            { 
-                                name: 'Stiff c/ Halteres', type: 'free', details: '3x 12 reps',
-                                guide: 'Pés na largura do quadril, joelhos levemente flexionados (destravados). Segure os halteres à frente das coxas. Desça o tronco mantendo a coluna reta, empurrando o quadril para trás, até sentir alongar a parte de trás da coxa.',
-                                tip: 'O movimento é no quadril, não na coluna. Olhe para o chão para manter o pescoço alinhado.'
+                                name: 'Mobilidade Inferiores', 
+                                details: '1x 15 reps',
+                                guide: 'Aquecimento geral para pernas.',
+                                video: '#'
                             }
-                        ], restTime: 50 
+                        ], restTime: 0 
                     },
                     { 
-                        id: 'abc_b2', type: 'biset', title: 'Bi-Set: Remada e Glúteo', 
+                        id: 'b_b1', type: 'biset', title: 'Bi-set 01', 
                         items: [
                             { 
-                                name: 'Remada Baixa', type: 'machine', details: '3x 12 reps',
-                                guide: 'Sente-se com a coluna reta. Segure o triângulo e puxe em direção ao umbigo, mantendo os cotovelos próximos ao corpo. Estenda os braços totalmente na volta, alongando as costas.',
-                                tip: 'Evite balançar o tronco para frente e para trás para ajudar a puxar o peso.'
-                            }, 
+                                name: 'Cadeira Flexora', 
+                                details: '3x 10 a 12 reps',
+                                guide: 'Ajuste bem o encosto para não compensar com a lombar.',
+                                video: 'https://www.youtube.com/watch?v=YextIqwQQ4w'
+                            },
                             { 
-                                name: 'Afundo (Halteres)', type: 'free', details: '3x 10 cada perna',
-                                guide: 'Em pé, segure halteres ao lado do corpo. Dê um passo largo para trás. Desça o joelho de trás em direção ao chão até formar um ângulo de 90 graus nas duas pernas. Suba fazendo força na perna da frente.',
-                                tip: 'Mantenha o tronco levemente inclinado para frente para ativar mais o glúteo.'
+                                name: 'Remada Baixa Pronada', 
+                                details: '3x 10 a 12 reps',
+                                guide: 'Tronco firme, puxe levando os cotovelos para trás.',
+                                video: 'https://www.youtube.com/watch?v=PjjTICd7xlo'
                             }
-                        ], restTime: 50 
+                        ], restTime: 60 
                     },
                     { 
-                        id: 'abc_b3', type: 'biset', title: 'Bi-Set: Isolado e Bíceps', 
+                        id: 'b_b2', type: 'biset', title: 'Bi-set 02', 
                         items: [
                             { 
-                                name: 'Mesa Flexora', type: 'machine', details: '3x 12 reps',
-                                guide: 'Deite-se de bruços na máquina, alinhando os joelhos com o eixo de rotação. Contraia a parte de trás da coxa para trazer o rolo em direção ao glúteo e retorne devagar.',
-                                tip: 'Mantenha o quadril colado no banco durante todo o movimento. Não deixe ele subir.'
-                            }, 
+                                name: 'Mesa Flexora', 
+                                details: '3x 10 a 12 reps',
+                                guide: 'Não deixe o quadril levantar do banco ao subir o peso.',
+                                video: 'https://www.youtube.com/watch?v=mbrziwTrHIY'
+                            },
                             { 
-                                name: 'Rosca Martelo', type: 'free', details: '3x 12 reps',
-                                guide: 'Em pé, segure os halteres com as palmas das mãos voltadas para o corpo (pegada neutra). Flexione os cotovelos subindo o peso em direção ao ombro e desça controladamente.',
-                                tip: 'Mantenha os cotovelos fixos ao lado das costelas. Não use o balanço do corpo.'
+                                name: 'Supino Inclinado (Halteres)', 
+                                details: '3x 10 a 12 reps',
+                                guide: 'Banco a 30-45 graus. Desça alongando bem o peitoral.',
+                                video: 'https://www.youtube.com/watch?v=WP1VLAt8hbM'
+                            }
+                        ], restTime: 60 
+                    },
+                    { 
+                        id: 'b_b3', type: 'biset', title: 'Bi-set 03', 
+                        items: [
+                            { 
+                                name: 'Leg Press (Pés Altos)', 
+                                details: '3x 10 a 12 reps',
+                                guide: 'Pés mais altos na plataforma para focar em posterior e glúteo.',
+                                video: 'https://www.youtube.com/watch?v=HG2vEDoCgcA'
+                            },
+                            { 
+                                name: 'Crucifixo Inverso Máquina', 
+                                details: '3x 10 a 12 reps',
+                                guide: 'Foco na parte de trás do ombro.',
+                                video: 'https://www.youtube.com/watch?v=iVwOmlHa_MI'
+                            }
+                        ], restTime: 60 
+                    },
+                    { 
+                        id: 'b_b4', type: 'biset', title: 'Bi-set 04', 
+                        items: [
+                            { 
+                                name: 'Cadeira Abdutora', 
+                                details: '3x 10 a 12 reps',
+                                guide: 'Tronco levemente inclinado à frente para maior ativação do glúteo.',
+                                video: 'https://www.youtube.com/watch?v=50qHGus1TZk'
+                            },
+                            { 
+                                name: 'Tríceps Corda', 
+                                details: '3x 10 a 12 reps',
+                                guide: 'Abra a corda no final do movimento para contração máxima.',
+                                video: 'https://www.youtube.com/watch?v=_c-eSh3PbSo'
+                            }
+                        ], restTime: 60 
+                    },
+                    { 
+                        id: 'b_fim', type: 'biset', title: 'Finalizador', 
+                        items: [
+                            { 
+                                name: 'Rosca Direta (Cabo)', 
+                                details: '3x 10 a 12 reps',
+                                guide: 'Mantenha postura ereta e cotovelos fixos.',
+                                video: 'https://www.youtube.com/watch?v=D2mghpkuF4M'
+                            },
+                            { 
+                                name: 'Prancha Abdominal', 
+                                details: '3x Até a falha',
+                                guide: 'Abdômen contraído, corpo em linha reta.',
+                                video: 'https://www.youtube.com/watch?v=j6VeEp9A_DA'
                             }
                         ], restTime: 45 
-                    }
-                ]
-            },
-            C: {
-                title: "Treino C: Core & Cardio",
-                description: "Abdômen Blindado e Foco na Corrida.",
-                exercises: [
-                    { 
-                        id: 'abc_c1', type: 'biset', title: 'Bi-Set: Reto Abdominal', 
-                        items: [
-                            { 
-                                name: 'Abdominal Supra (Solo)', type: 'free', details: '3x 20 a 25 reps',
-                                guide: 'Deite de costas no colchonete, joelhos flexionados e pés no chão. Coloque as mãos atrás da cabeça ou no peito. Suba o tronco tirando apenas as escápulas do chão, contraindo o abdômen.',
-                                tip: 'Solte todo o ar pela boca quando subir. Olhe para um ponto fixo no teto na diagonal para não forçar o pescoço.'
-                            }, 
-                            { 
-                                name: 'Prancha Isométrica', type: 'free', details: '3x 30 a 45 seg',
-                                guide: 'Apoie os cotovelos e a ponta dos pés no chão. Mantenha o corpo em linha reta, da cabeça aos calcanhares. Contraia forte o glúteo e o abdômen, como se fosse levar um soco na barriga.',
-                                tip: 'Não deixe a lombar "selar" (cair) em direção ao chão. Se sentir dor nas costas, suba um pouco o quadril.'
-                            }
-                        ], restTime: 30 
-                    },
-                    { 
-                        id: 'abc_c2', type: 'biset', title: 'Bi-Set: Infra e Lombar', 
-                        items: [
-                            { 
-                                name: 'Elevação de Pernas', type: 'free', details: '3x 15 reps',
-                                guide: 'Deite de costas, coloque as mãos embaixo do glúteo para proteger a lombar. Mantenha as pernas estendidas (ou levemente flexionadas) e suba-as até 90 graus. Desça devagar sem encostar no chão.',
-                                tip: 'Foque a força na parte inferior da barriga. Se a lombar doer, dobre um pouco os joelhos.'
-                            }, 
-                            { 
-                                name: 'Hiperextensão Lombar', type: 'free', details: '3x 15 reps',
-                                guide: 'Deite de bruços no chão (posição Superman). Tire o peito e as pernas do chão simultaneamente, contraindo a lombar e os glúteos, e retorne.',
-                                tip: 'Não precisa subir excessivamente, apenas o suficiente para sentir a contração na lombar.'
-                            }
-                        ], restTime: 30 
-                    },
-                    { 
-                        id: 'abc_c3', type: 'biset', title: 'Bi-Set: Oblíquos', 
-                        items: [
-                            { 
-                                name: 'Abdominal Bicicleta', type: 'free', details: '3x 20 reps totais',
-                                guide: 'Deite de costas, mãos na cabeça. Tire os ombros do chão. Leve o cotovelo direito em direção ao joelho esquerdo enquanto estica a perna direita. Alterne os lados continuamente.',
-                                tip: 'O objetivo é girar o tronco, não apenas mexer os cotovelos.'
-                            }, 
-                            { 
-                                name: 'Toque no Calcanhar', type: 'free', details: '3x 20 reps totais',
-                                guide: 'Deite de costas, joelhos dobrados e pés no chão. Tire levemente os ombros do chão e incline o tronco lateralmente para tentar tocar a mão no calcanhar do mesmo lado.',
-                                tip: 'Mantenha o olhar para o teto ou entre os joelhos para não tensionar o pescoço.'
-                            }
-                        ], restTime: 30 
                     }
                 ]
             }
         };
 
-        const RUNNING_LEVELS = [
-            { id: 1, title: 'Nível 1 (Adaptação)', detail: '30s Trote Leve / 90s Caminhada', time: '15 min' },
-            { id: 2, title: 'Nível 2 (Progresso)', detail: '45s Trote Leve / 75s Caminhada', time: '18 min' },
-            { id: 3, title: 'Nível 3 (Desafio)', detail: '1 min Trote / 1 min Caminhada', time: '20 min' },
-            { id: 4, title: 'Nível 4 (Consistência)', detail: '1.5 min Trote / 1 min Caminhada', time: '22 min' },
-            { id: 5, title: 'Nível 5 (Meta)', detail: '2 a 3 min Trote / 1 min Caminhada', time: '25 min' }
-        ];
-
         // --- SISTEMA DE DADOS (LOCALSTORAGE) ---
-        const DATA_KEY = 'operacao_dezembro_api_v2_ptbr';
+        const DATA_KEY = 'desafio_bruna_bi_set_v1';
         let currentWorkoutKey = null;
 
         function getTodayKey() { return new Date().toLocaleDateString('pt-BR'); }
@@ -342,99 +443,83 @@
         const timerDisplay = document.getElementById('timer-display');
         const badgeMode = document.getElementById('modal-mode-badge');
 
-        // --- API & GUIDE LOGIC ---
-        
-        // Função ÚNICA de Fetch (Apenas Imagem)
-        async function fetchExerciseImage(id) {
-            const url = `https://${RAPID_API_HOST}/image?resolution=720&exerciseId=${id}`;
-            const options = {
-                method: 'GET',
-                headers: {
-                    'x-rapidapi-key': RAPID_API_KEY,
-                    'x-rapidapi-host': RAPID_API_HOST
-                }
-            };
-            try {
-                const response = await fetch(url, options);
-                if (!response.ok) throw new Error('Falha na Imagem');
-                
-                // Converte a resposta binária em Blob e depois em URL local
-                const blob = await response.blob();
-                return URL.createObjectURL(blob);
-            } catch (error) {
-                console.error(error);
-                return null;
-            }
+        // --- VIDEO & GUIDE LOGIC ---
+        function extractVideoId(url) {
+            // Suporta formatos: youtube.com/watch?v=ID, youtu.be/ID, youtube.com/shorts/ID
+            const regExp = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=|shorts\/)|youtu\.be\/)([^"&?\/\s]{11})/;
+            const match = url.match(regExp);
+            return (match && match[1]) ? match[1] : null;
         }
 
-        async function openGuide(exerciseIndex, itemIndex) {
+        function openGuide(exerciseIndex, itemIndex) {
             if (!currentWorkoutKey) return;
             
             const exercise = WORKOUT_PLAN[currentWorkoutKey].exercises[exerciseIndex].items[itemIndex];
-            const mappedId = API_MAPPING[exercise.name];
 
-            // 1. Configura Texto (SEMPRE em Português do WORKOUT_PLAN)
+            // Set Text
             document.getElementById('guide-exercise-title').innerText = exercise.name;
             document.getElementById('guide-text').innerText = exercise.guide || "Siga as orientações do seu treinador.";
-            document.getElementById('guide-tip').innerText = exercise.tip || "Mantenha a postura e respiração constantes.";
             
-            // Badge visual
-            const badge = document.getElementById('guide-type-badge');
-            if (exercise.type === 'machine') {
-                badge.innerText = "Máquina / Guiado";
-                badge.className = "text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded mb-2 inline-block bg-blue-100 text-blue-700";
-            } else {
-                badge.innerText = "Peso Livre / Haltere";
-                badge.className = "text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded mb-2 inline-block bg-pink-100 text-pink-700";
-            }
+            // Handle Video
+            const videoWrapper = document.getElementById('video-wrapper');
+            const noVideoMsg = document.getElementById('no-video-msg');
+            const playerSlot = document.getElementById('youtube-player-slot');
+            
+            // Limpa anterior
+            playerSlot.innerHTML = '';
 
-            // Elementos visuais
-            const gifImg = document.getElementById('guide-gif');
-            const loader = document.getElementById('guide-loader');
-            const noImgMsg = document.getElementById('guide-no-image');
-
-            guideModal.classList.remove('hidden');
-
-            // 2. Busca Imagem (Se houver ID mapeado)
-            if (mappedId) {
-                gifImg.classList.add('hidden');
-                noImgMsg.classList.add('hidden');
-                loader.classList.remove('hidden'); 
-
-                const apiImageBlobUrl = await fetchExerciseImage(mappedId);
+            if (exercise.video && exercise.video !== '#') {
+                const videoId = extractVideoId(exercise.video);
                 
-                loader.classList.add('hidden');
-
-                if (apiImageBlobUrl) {
-                    gifImg.src = apiImageBlobUrl;
-                    gifImg.classList.remove('hidden');
+                if (videoId) {
+                    videoWrapper.classList.remove('hidden');
+                    noVideoMsg.classList.add('hidden');
+                    
+                    // Injeta Iframe
+                    playerSlot.innerHTML = `
+                        <iframe 
+                            src="https://www.youtube.com/embed/${videoId}?rel=0&autoplay=0&modestbranding=1&playsinline=1" 
+                            title="YouTube video player" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen>
+                        </iframe>
+                    `;
                 } else {
-                    noImgMsg.innerText = "Imagem demonstrativa indisponível";
-                    noImgMsg.classList.remove('hidden');
+                    // Tem link mas não conseguiu extrair ID
+                    videoWrapper.classList.add('hidden');
+                    noVideoMsg.classList.remove('hidden');
                 }
             } else {
-                // Modo Manual (Sem ID)
-                loader.classList.add('hidden');
-                gifImg.classList.add('hidden');
-                noImgMsg.classList.remove('hidden');
-                noImgMsg.innerText = "Imagem demonstrativa indisponível";
+                // Sem vídeo cadastrado
+                videoWrapper.classList.add('hidden');
+                noVideoMsg.classList.remove('hidden');
             }
+
+            guideModal.classList.remove('hidden');
+            lucide.createIcons();
         }
 
-        function closeGuide() { guideModal.classList.add('hidden'); }
+        function closeGuide() { 
+            guideModal.classList.add('hidden'); 
+            // Remove o iframe para parar o vídeo imediatamente
+            document.getElementById('youtube-player-slot').innerHTML = '';
+        }
 
         // --- RENDER HOME ---
         function renderHome() {
             currentWorkoutKey = null;
-            const today = new Date().getDay();
+            const today = new Date().getDay(); // 0 = Dom, 1 = Seg...
+            
+            // Sugestão baseada na rotina de 5 dias
             const schedule = {
-                1: { key: 'A', title: 'Frente (A)' },
-                2: { key: 'B', title: 'Trás (B)' },
-                3: { key: 'C', title: 'Core & Cardio (C)' },
-                4: { key: 'A', title: 'Frente (A)' },
-                5: { key: 'B', title: 'Trás (B)' },
-                6: { key: 'C', title: 'Core & Cardio (C)' },
-                0: { key: 'rest', title: 'Descanso' }
+                1: { key: 'A', title: 'Treino A (Seg)' },
+                2: { key: 'B', title: 'Treino B (Ter)' },
+                3: { key: 'HIIT', title: 'HIIT / Cardio (Qua)' },
+                4: { key: 'A', title: 'Treino A (Qui)' },
+                5: { key: 'B', title: 'Treino B (Sex)' },
+                6: { key: 'HIIT', title: 'HIIT / Cardio (Sáb)' },
+                0: { key: 'HIIT', title: 'HIIT / Cardio (Dom)' }
             };
 
             const suggestion = schedule[today] || schedule[0];
@@ -444,8 +529,8 @@
                 <div class="bg-slate-900 text-white p-5 sticky top-0 z-10 shadow-lg mb-4">
                     <div class="flex justify-between items-end">
                         <div>
-                            <p class="text-xs text-emerald-400 font-bold uppercase tracking-widest mb-1">Operação Dezembro</p>
-                            <h1 class="text-xl font-bold">Olá, Atleta!</h1>
+                            <p class="text-xs text-pink-400 font-bold uppercase tracking-widest mb-1">Desafio Barriga Zero</p>
+                            <h1 class="text-xl font-bold">Olá, Bruna!</h1>
                         </div>
                         <div class="text-right">
                              <p class="text-xs text-slate-400">Hoje</p>
@@ -457,26 +542,26 @@
                 <div class="p-4 space-y-6 fade-in pb-20">
             `;
 
-            if (suggestion.key !== 'rest') {
+            if (suggestion.key) {
                  html += `
-                    <button onclick="renderWorkout('${suggestion.key}')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white p-6 rounded-2xl shadow-xl shadow-emerald-900/20 text-left transition-transform active:scale-95 border border-emerald-500 relative overflow-hidden group">
+                    <button onclick="renderWorkout('${suggestion.key}')" class="w-full bg-pink-600 hover:bg-pink-700 text-white p-6 rounded-2xl shadow-xl shadow-pink-900/20 text-left transition-transform active:scale-95 border border-pink-500 relative overflow-hidden group">
                         <div class="relative z-10">
-                            <span class="bg-emerald-800 text-emerald-100 text-xs px-2 py-1 rounded font-bold uppercase">Treino do Dia</span>
+                            <span class="bg-pink-800 text-pink-100 text-xs px-2 py-1 rounded font-bold uppercase">Sugestão do Dia</span>
                             <h2 class="text-3xl font-bold mt-2 mb-1">Treino ${suggestion.key}</h2>
-                            <p class="text-emerald-100 text-sm opacity-90">${WORKOUT_PLAN[suggestion.key].description}</p>
+                            <p class="text-pink-100 text-sm opacity-90">${WORKOUT_PLAN[suggestion.key].description}</p>
                         </div>
-                        <i data-lucide="zap" class="absolute right-[-20px] bottom-[-20px] w-32 h-32 text-emerald-500 opacity-20 group-hover:scale-110 transition-transform"></i>
+                        <i data-lucide="zap" class="absolute right-[-20px] bottom-[-20px] w-32 h-32 text-pink-400 opacity-20 group-hover:scale-110 transition-transform"></i>
                     </button>
                  `;
             }
 
-            html += `<h3 class="font-bold text-slate-700 text-lg flex items-center gap-2 mt-6"><i data-lucide="list"></i> Lista de Treinos</h3>
+            html += `<h3 class="font-bold text-slate-700 text-lg flex items-center gap-2 mt-6"><i data-lucide="list"></i> Seus Treinos</h3>
                      <div class="grid gap-3">`;
 
             workoutsKeys.forEach(key => {
                 const plan = WORKOUT_PLAN[key];
                 html += `
-                    <button onclick="renderWorkout('${key}')" class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex justify-between items-center hover:border-emerald-500 transition-colors text-left">
+                    <button onclick="renderWorkout('${key}')" class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex justify-between items-center hover:border-pink-500 transition-colors text-left">
                         <div>
                             <h4 class="font-bold text-slate-800">${plan.title}</h4>
                             <p class="text-xs text-slate-500">${plan.description}</p>
@@ -497,9 +582,7 @@
         function renderWorkout(key) {
             currentWorkoutKey = key;
             const plan = WORKOUT_PLAN[key];
-            const storedRun = getExerciseData(`run_${key}`);
-            const savedLevel = storedRun.level || 1;
-
+            
             let html = `
                 <div class="bg-white border-b border-slate-200 sticky top-0 z-20 px-4 py-3 flex items-center gap-3 shadow-sm">
                     <button onclick="renderHome()" class="p-2 -ml-2 hover:bg-slate-100 rounded-full text-slate-600">
@@ -507,12 +590,31 @@
                     </button>
                     <div>
                         <h1 class="font-bold text-lg leading-tight text-slate-800">${plan.title}</h1>
-                        <p class="text-xs text-slate-500">Toque no nome para ver como fazer</p>
+                        <p class="text-xs text-slate-500">${plan.videoUrl ? 'Assista ao vídeo abaixo' : 'Toque no nome para ver o vídeo'}</p>
                     </div>
                 </div>
 
                 <div class="p-4 space-y-4 pb-32 max-w-lg mx-auto">
             `;
+
+            // SE TIVER VÍDEO DO TREINO (HIIT)
+            if (plan.videoUrl) {
+                html += `
+                    <div class="video-container shadow-lg rounded-xl mb-6">
+                        <iframe 
+                            src="${plan.videoUrl}" 
+                            title="Treino Video" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                    <div class="bg-blue-50 border border-blue-100 p-4 rounded-xl text-sm text-blue-900 mb-6">
+                        <p class="font-bold mb-1 flex items-center gap-2"><i data-lucide="info" width="16"></i> Instruções:</p>
+                        Abaixo está uma sugestão de exercícios para acompanhar este vídeo. Use o timer de cada bloco para marcar seu tempo.
+                    </div>
+                `;
+            }
 
             plan.exercises.forEach((ex, exIdx) => {
                 const stored = getExerciseData(ex.id);
@@ -523,34 +625,32 @@
                     const savedWeight = stored.items?.[itemIdx]?.weight || '';
                     const savedReps = stored.items?.[itemIdx]?.reps || '';
                     
-                    const badge = item.type === 'machine' 
-                        ? `<span class="badge-machine">Máquina</span>` 
-                        : `<span class="badge-free">Livre</span>`;
-
-                    const hasApi = API_MAPPING[item.name];
-                    const apiIcon = hasApi ? '<i data-lucide="globe" width="14" class="text-blue-400"></i>' : '<i data-lucide="info" width="14" class="text-slate-400"></i>';
-
                     const nameButton = `
-                        <button onclick="openGuide(${exIdx}, ${itemIdx})" class="font-bold text-slate-700 text-sm flex items-center gap-2 hover:text-emerald-600 underline decoration-dotted underline-offset-4 decoration-slate-300 text-left transition-colors">
-                            ${item.name} ${apiIcon} ${badge}
+                        <button onclick="openGuide(${exIdx}, ${itemIdx})" class="font-bold text-slate-700 text-sm flex items-center gap-2 hover:text-pink-600 text-left transition-colors w-full mb-1">
+                            ${item.name} <i data-lucide="play-circle" width="14" class="text-red-500"></i>
                         </button>
                     `;
 
+                    // Se for HIIT, não mostra peso, apenas Reps/Tempo se necessário
+                    const inputsHtml = (key === 'HIIT') ? `
+                         <p class="text-xs text-slate-500 bg-slate-50 p-2 rounded border border-slate-100 mt-1">${item.details}</p>
+                    ` : `
+                        <div class="flex gap-2">
+                            <div class="relative w-1/2">
+                                <input type="number" placeholder="kg" value="${savedWeight}" id="w-${ex.id}-${itemIdx}" class="input-compact pl-7" inputmode="numeric">
+                                <span class="absolute left-2 top-1.5 text-xs text-slate-400 font-bold">Kg</span>
+                            </div>
+                            <div class="relative w-1/2">
+                                <input type="number" placeholder="Reps" value="${savedReps}" id="r-${ex.id}-${itemIdx}" class="input-compact pl-2 text-center" inputmode="numeric">
+                            </div>
+                        </div>
+                    `;
+
                     itemsHtml += `
-                        <div class="mb-4 last:mb-0">
-                            <div class="flex justify-between items-baseline mb-2">
-                                ${nameButton}
-                            </div>
-                            <p class="text-[10px] text-slate-400 font-mono mb-2 pl-1 border-l-2 border-slate-200">${item.details}</p>
-                            <div class="flex gap-2">
-                                <div class="relative w-1/2">
-                                    <input type="number" placeholder="kg" value="${savedWeight}" id="w-${ex.id}-${itemIdx}" class="input-compact pl-7" inputmode="numeric">
-                                    <span class="absolute left-2 top-1.5 text-xs text-slate-400 font-bold">Kg</span>
-                                </div>
-                                <div class="relative w-1/2">
-                                    <input type="number" placeholder="Reps" value="${savedReps}" id="r-${ex.id}-${itemIdx}" class="input-compact pl-2 text-center" inputmode="numeric">
-                                </div>
-                            </div>
+                        <div class="mb-4 last:mb-0 relative pl-3 border-l-2 border-slate-100">
+                            ${nameButton}
+                            ${key !== 'HIIT' ? `<p class="text-[10px] text-slate-400 font-mono mb-2">${item.details}</p>` : ''}
+                            ${inputsHtml}
                         </div>
                     `;
                 });
@@ -558,8 +658,8 @@
                 html += `
                     <div id="card-${ex.id}" class="bg-white rounded-xl border-2 ${isDone ? 'card-done' : 'border-slate-200'} shadow-sm transition-all duration-300">
                         <div class="p-4 pb-2 border-b border-slate-100/50 flex justify-between items-center">
-                            <span class="text-[10px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 px-2 py-0.5 rounded">
-                                Bi-Set
+                            <span class="badge-bi">
+                                ${ex.title}
                             </span>
                             <span class="text-xs text-slate-400 flex items-center gap-1">
                                 <i data-lucide="clock" width="12"></i> ${ex.restTime}s
@@ -581,73 +681,28 @@
                 `;
             });
 
-            // Running Card
-            const runDone = storedRun.done;
-            const optionsHtml = RUNNING_LEVELS.map(l => `<option value="${l.id}" ${savedLevel == l.id ? 'selected' : ''}>${l.title}</option>`).join('');
-            const currentLevel = RUNNING_LEVELS.find(l => l.id == savedLevel) || RUNNING_LEVELS[0];
-
-            html += `
-                <div id="card-run_${key}" class="bg-white rounded-xl border-2 ${runDone ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200'} shadow-sm mt-6">
-                    <div class="p-4 border-b border-slate-100 flex justify-between items-center">
-                        <h3 class="font-bold text-slate-800 flex items-center gap-2">
-                            <i data-lucide="wind" class="text-blue-500"></i> ${key === 'C' ? 'Treino Principal: Corrida' : 'Pós-Treino: Corrida'}
-                        </h3>
-                    </div>
-                    <div class="p-4 space-y-3">
-                        <div class="bg-blue-50 p-3 rounded-lg mb-2 border border-blue-100">
-                            <label class="text-xs font-bold text-blue-800 uppercase block mb-1">Selecione seu Nível Hoje:</label>
-                            <select id="run-level-select" onchange="updateRunLevelDisplay(this.value)" class="w-full text-sm p-2 rounded border border-blue-200 bg-white text-slate-700 font-semibold">
-                                ${optionsHtml}
-                            </select>
-                        </div>
-
-                        <div id="run-details-box" class="text-center py-2">
-                             <p class="text-2xl font-bold text-slate-700" id="run-time-display">${currentLevel.time}</p>
-                             <p class="text-sm text-emerald-600 font-medium" id="run-detail-display">${currentLevel.detail}</p>
-                        </div>
-                        
-                        <div class="grid grid-cols-2 gap-2 mt-2">
-                            <div>
-                                <label class="text-[10px] font-bold text-slate-400 uppercase">Distância (km)</label>
-                                <input type="number" id="run-dist" value="${storedRun.dist || ''}" placeholder="0.0" class="input-compact" inputmode="decimal">
-                            </div>
-                            <div>
-                                <label class="text-[10px] font-bold text-slate-400 uppercase">Velocidade (km/h)</label>
-                                <input type="number" id="run-speed" value="${storedRun.speed || ''}" placeholder="0.0" class="input-compact" inputmode="decimal">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="p-2 border-t border-slate-100">
-                        <button onclick="saveRun('run_${key}')" class="w-full action-btn ${runDone ? 'btn-check checked' : 'btn-check'}">
-                            <i data-lucide="save"></i> ${runDone ? 'Salvo' : 'Salvar Corrida'}
-                        </button>
-                    </div>
-                </div>
-            `;
-
             html += `</div>`;
             appDiv.innerHTML = html;
             lucide.createIcons();
             window.scrollTo(0, 0);
         }
 
-        function updateRunLevelDisplay(levelId) {
-            const level = RUNNING_LEVELS.find(l => l.id == levelId);
-            if(level) {
-                document.getElementById('run-time-display').innerText = level.time;
-                document.getElementById('run-detail-display').innerText = level.detail;
-            }
-        }
-
+        // --- FUNÇÕES DE AÇÃO ---
         function toggleDone(exId, itemsCount) {
             const card = document.getElementById(`card-${exId}`);
             const btn = document.getElementById(`btn-check-${exId}`);
             const itemsData = [];
-            for(let i=0; i<itemsCount; i++) {
-                const w = document.getElementById(`w-${exId}-${i}`).value;
-                const r = document.getElementById(`r-${exId}-${i}`).value;
-                itemsData.push({ weight: w, reps: r });
+            // Para HIIT não precisamos salvar inputs necessariamente, mas mantemos a estrutura
+            const isHiit = currentWorkoutKey === 'HIIT';
+            
+            if (!isHiit) {
+                for(let i=0; i<itemsCount; i++) {
+                    const w = document.getElementById(`w-${exId}-${i}`).value;
+                    const r = document.getElementById(`r-${exId}-${i}`).value;
+                    itemsData.push({ weight: w, reps: r });
+                }
             }
+            
             const currentData = getExerciseData(exId);
             const newState = !currentData.done;
             saveExerciseData(exId, { done: newState, items: itemsData });
@@ -657,7 +712,7 @@
                 card.classList.remove('border-slate-200');
                 btn.classList.add('checked');
                 btn.innerHTML = `<i data-lucide="check" width="16"></i> Feito`;
-                confetti({ particleCount: 30, spread: 50, origin: { y: 0.7 }, colors: ['#10b981', '#34d399'] });
+                confetti({ particleCount: 30, spread: 50, origin: { y: 0.7 }, colors: ['#ec4899', '#be185d'] });
             } else {
                 card.classList.remove('card-done');
                 card.classList.add('border-slate-200');
@@ -667,21 +722,14 @@
             lucide.createIcons();
         }
 
-        function saveRun(runId) {
-            const dist = document.getElementById('run-dist').value;
-            const speed = document.getElementById('run-speed').value;
-            const level = document.getElementById('run-level-select').value;
-            saveExerciseData(runId, { done: true, dist, speed, level });
-            const card = document.getElementById(`card-${runId}`);
-            card.classList.remove('border-slate-200');
-            card.classList.add('border-emerald-500', 'bg-emerald-50');
-            const btn = card.querySelector('button');
-            btn.innerHTML = `<i data-lucide="check"></i> Salvo!`;
-            btn.classList.add('checked');
-            confetti({ particleCount: 100, spread: 70, origin: { y: 0.8 } });
-            lucide.createIcons();
+        function saveHiit() {
+            // Deprecated logic kept for compatibility
+            const time = document.getElementById('hiit-time').value;
+            if(!time) return;
+            localStorage.setItem(DATA_KEY + '_hiit_' + getTodayKey(), time);
         }
 
+        // --- TIMER LOGIC ---
         function openTimer(mode, title, duration) {
             timerMode = mode;
             currentRestTime = duration;
@@ -718,7 +766,7 @@
             timerActive = true;
             document.getElementById('lbl-toggle').innerText = "Pausar";
             const btn = document.getElementById('btn-toggle-timer');
-            btn.classList.remove('bg-emerald-500', 'hover:bg-emerald-600');
+            btn.classList.remove('bg-pink-500', 'hover:bg-pink-600');
             btn.classList.add('bg-red-500', 'hover:bg-red-600');
             timerInterval = setInterval(() => {
                 if (timerMode === 'rest') {
@@ -734,7 +782,7 @@
             clearInterval(timerInterval);
             document.getElementById('lbl-toggle').innerText = timerMode === 'rest' ? "Continuar" : "Iniciar";
             const btn = document.getElementById('btn-toggle-timer');
-            btn.classList.add('bg-emerald-500', 'hover:bg-emerald-600');
+            btn.classList.add('bg-pink-500', 'hover:bg-pink-600');
             btn.classList.remove('bg-red-500', 'hover:bg-red-600');
         }
 
@@ -764,3 +812,5 @@
     </script>
 </body>
 </html>
+
+
